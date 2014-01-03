@@ -3,7 +3,8 @@
 <table>
   <thead>
     <tr>
-      <th>Username</th>
+      <th>Name</th>
+      <th>Login</th>
       <th>Email</th>
       <th></th>
       <th></th>
@@ -14,7 +15,8 @@
   <tbody>
     <% @users.each do |user| %>
       <tr>
-        <td><%= user.username %></td>
+        <td><%= user.name %></td>
+        <td><%= user.login %></td>
         <td><%= user.email %></td>
         <td><%= link_to 'Show', user %></td>
         <td><%= link_to 'Edit', edit_user_path(user) %></td>

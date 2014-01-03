@@ -1,5 +1,16 @@
 Resistance::Application.routes.draw do
-  resources :users
+
+  resources :user_sessions
+
+  get 'login' => "user_sessions#new",      :as => :login
+  match 'logout' => "user_sessions#destroy", :as => :logout, via: :post
+
+  resources :users  # give us our some normal resource routes for users
+  resource :user, :as => 'account'  # a convenience route
+
+  get 'signup' => 'users#new', :as => :signup
+
+  root :to => 'users#new'
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".

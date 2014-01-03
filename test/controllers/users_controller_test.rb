@@ -20,7 +20,8 @@ class UsersControllerTest < ActionController::TestCase
     assert_difference('User.count') do
       post :create, user: {
         email: @user.email,
-        username: @user.username,
+        name: @user.name,
+        login: @user.login,
         password: @user.password,
         password_confirmation: @user.password_confirmation
       }
