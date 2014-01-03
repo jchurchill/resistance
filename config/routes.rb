@@ -5,6 +5,7 @@ Resistance::Application.routes.draw do
   get 'login' => "user_sessions#new",      :as => :login
   match 'logout' => "user_sessions#destroy", :as => :logout, via: :post
 
+  # TODO JC: this gives us way more routes than we need, how can we trim these?
   resources :users  # give us our some normal resource routes for users
   resource :user, :as => 'account'  # a convenience route
 
