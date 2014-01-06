@@ -1,9 +1,8 @@
 class UsersController < ApplicationController
   before_action :set_user, only: [:show, :edit, :update, :destroy]
-  before_filter :login_required, :only => :show 
+  before_filter :login_required, :only => [:show, :edit]
 
   # GET /users
-  # GET /users.json
   def index
     @users = User.all
   end
@@ -19,6 +18,7 @@ class UsersController < ApplicationController
   end
 
   # GET /users/1/edit
+  # GET /user/edit
   def edit
   end
 
@@ -40,13 +40,6 @@ class UsersController < ApplicationController
     else
       render :action => :edit
     end
-  end
-
-  # DELETE /users/1
-  # DELETE /users/1.json
-  def destroy
-    @user.destroy
-    redirect_to users_url
   end
 
   private
