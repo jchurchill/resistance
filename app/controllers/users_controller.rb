@@ -27,16 +27,16 @@ class UsersController < ApplicationController
     @user = User.new(user_params)
 
     if @user.save
-      redirect_to @user, notice: 'User was successfully created.'
+      redirect_to account_url, notice: 'User was successfully created.'
     else
       render :action => :new
     end
   end
 
-  # PATCH/PUT /users/1
+  # PATCH/PUT /user
   def update
     if @user.update_attributes(user_params)
-      redirect_to @user, notice: 'User was successfully updated.'
+      redirect_to account_url, notice: 'User was successfully updated.'
     else
       render :action => :edit
     end
