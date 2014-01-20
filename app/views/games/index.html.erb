@@ -1,0 +1,30 @@
+<h1>My Games</h1>
+
+<p id="notice"><%= notice %></p>
+
+<table>
+	<thead><tr>
+		<th>Game</th>
+		<th>Creator</th>
+		<th>Number of players</th>
+		<th>Status</th>
+	</tr></thead>
+	<tbody>
+	<% @games.each do |game| %>
+		<tr>
+			<td>
+				<% if game.status == GameStatus::WAITING_FOR_PLAYERS or game.status == GameStatus::IN_PROGRESS %>
+					<%= link_to game.title, game %>
+				<% else %>
+					game.title
+				<% end %>
+			</td>
+			<td><%= game.creator.name %></td>
+			<td>(<%= game.player_count %> players)</td>
+			<td><%= get_status_display game %></td>
+		</tr>
+	</tbody>
+	<% end %>
+</table>
+
+<%= link_to 'Create new game', new_game_url %>

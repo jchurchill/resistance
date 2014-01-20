@@ -1,0 +1,13 @@
+<%= render "shared/error_messages", :target => @game %>
+
+<%= form_for @game do |form| %>
+	<p>
+	  <%= form.label :title %><br />
+	  <%= form.text_field :title %>
+	</p>
+	<p>
+	  <%= form.label :player_count %><br />
+	  <%= form.collection_select :player_count, valid_player_counts, :to_s, :to_s, {:prompt => true} %>
+	</p>
+	<%= form.submit "Create" %>
+<% end %>

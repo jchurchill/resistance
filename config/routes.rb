@@ -1,5 +1,9 @@
 Resistance::Application.routes.draw do
 
+  # TODO generate fewer of these
+  resources :game_invitees # new / create
+  resources :games # new / create / show
+
   resources :user_sessions
 
   get 'login' => "user_sessions#new",      :as => :login

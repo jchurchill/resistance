@@ -30,6 +30,9 @@ gem 'jbuilder', '~> 1.2'
 # JC 1/2/2014 - Adding a gem that supports user login auth
 gem 'authlogic'
 
+# JC 1/19/2014 - Include jquery ui rails for the widget framework
+gem 'jquery-ui-rails', '~> 4.1.1'
+
 group :doc do
   # bundle exec rake doc:rails generates the API under doc/api.
   gem 'sdoc', require: false

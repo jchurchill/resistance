@@ -1,0 +1,29 @@
+<h2>Waiting for players to join...</h2>
+
+<h3>Joined players</h3>
+
+<% invitees1 = GameInvitee.where(game_id: @game.id, is_joined: true).includes(:user) %>
+<ul>
+<% invitees1.each do |i| %>
+	<li><%= i.user.name %> (<%= i.user.login %>)</li>
+<% end %>
+</ul>
+
+
+<h3>Invite pending players</h3>
+<% invitees2 = GameInvitee.where(game_id: @game.id, is_joined: false).includes(:user) %>
+<ul>
+<% invitees2.each do |i| %>
+	<li><%= i.user.name %> (<%= i.user.login %>)</li>
+<% end %>
+</ul>
+
+
+<h3>Invite a player</h3>
+<% invitee = GameInvitee.new(:game_id => @game.id) %>
+<%= form_for invitee do |form| %>
+	<%= form.label :user_id %>
+	<%= form.text_field :user_id, placeholder: "A user's id" %>
+
+	<%= form.hidden_field :game_id %>
+<% end %>

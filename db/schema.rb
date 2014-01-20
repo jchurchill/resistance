@@ -61,6 +61,7 @@ ActiveRecord::Schema.define(version: 20140107052156) do
     t.integer  "status",       null: false
     t.string   "title",        null: false
     t.integer  "player_count", null: false
+    t.integer  "creator_id",   null: false
     t.datetime "created_at"
     t.datetime "updated_at"
   end
