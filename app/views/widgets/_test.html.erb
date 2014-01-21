@@ -1,0 +1,14 @@
+<div style="border:1px solid black;padding:10px">
+	<h2>TEST WIDGET</h2>
+	<div>
+		<div>
+			<ul style="list-style-type:none">
+				<li><b>Test widget:</b> <%= test_string %> !</li>
+				<li><b>Instance:</b> <%= widget_template_info[:widget_uuid] %></li>
+				<li><b>Parent widget instance:</b> <%= widget_template_info[:parent_widget_context] || 'none' %></li>
+			</ul>
+		</div>
+		<h3>Subwidget:</h3>
+		<%= widget 'testsub', 'testsub1', { testsub_string: test_string } %>
+	</div>
+</div>

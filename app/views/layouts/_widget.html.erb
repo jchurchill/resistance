@@ -1,0 +1,24 @@
+<% 
+# This file is the single layout for all widget partials.
+%>
+
+<%
+# Wrap all widgets in a div with class name of their widget instance uuid.
+# This is necessary for binding the widget instance object in javascript to the
+# correct html element.
+# Additionally, a class is applied to designate this as a widget built by this framework.
+# Finally, a class name with the widget type is added, so that all widgets
+# of the same type can be selected easily if desired.
+%>
+<%= content_tag :div,
+		class: [widget_template_info[:widget_class], 'jj-widget', widget_template_info[:widget_type]] do %>
+	<%= yield %>
+<% end %>
+
+<% 
+# When this widget file is done rendering, reset the current widget context to this
+# widget's parent widget context (which may be null if this widget is on the top-level page).
+# This is required by the widget framework in order to manage which widget instances are
+# contained in other widget instances.
+%>
+<% set_widget_context widget_template_info[:parent_widget_context] %>

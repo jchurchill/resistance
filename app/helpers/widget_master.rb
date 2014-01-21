@@ -1,12 +1,26 @@
 module WidgetMaster
 	WIDGETS = {
-		:a => {
-			:view => 'in_progress',
+		:test => {
+			:view => 'widgets/test',
 			:js => [],
 			:style => [],
 			:dependencies => []
 		},
+		:testsub => {
+			:view => 'widgets/testsub',
+			:js => [],
+			:style => [],
+			:dependencies => []
+		}
 	}
+
+	def self.get_widget_info (widget_type)
+		widget_type_sym = widget_type.to_sym
+		if not WIDGETS.has_key? widget_type_sym
+			raise "Widget type '#{widget_type_sym}' could not be found in the WidgetMaster."
+		end
+		return WIDGETS[widget_type_sym]
+	end
 
 	# Given a list of widgets A, B, C, ..., returns them and
 	# all their dependencies ordered in dependency order. That is,
