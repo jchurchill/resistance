@@ -63,15 +63,18 @@ module WidgetMaster
 				raise "The following widget(s) are involved in circular dependencies: #{widget_list}"
 			end
 		end
+
 		def self.is_in_circular_dependency (widget_type)
 			all_deps = get_expanded_dependencies(widget_type)
 			return all_deps.include? widget_type
 		end
+
 		def self.get_expanded_dependencies (widget_type)
 			all_deps = Set.new
 			expand_dependencies! widget_type, all_deps
 			return all_deps
 		end
+		
 		def self.expand_dependencies! (widget_type, expanded_deps)
 			deps = WIDGETS[widget_type][:dependencies] || []
 			deps.each { |d| 

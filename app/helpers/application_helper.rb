@@ -16,33 +16,17 @@ module ApplicationHelper
 		@registered_widgets.add(widget_type_sym)
 
 		# Save the parent widget context for this widget instance
-		context = @parent_widget_context
+		parent_context = @parent_widget_context
 
 		# Dev only: check that the widget being rendered is actually listed as a dependency
 		# of the parent widget, if we are rendering within a parent widget.
 		if Rails.env.development?
-			enforce_widget_dependencies(context, widget_type_sym)
+			enforce_widget_dependencies(parent_context, widget_type_sym)
 		end
 
-		# Generate a uuid for the instance of the widget being rendered
-		new_instance_uuid = SecureRandom.uuid
-
-		# If we're inside a parent widget's context (context is not nil),
-		# then record that this widget instance is contained within the parent
-		# widget instance.
-		if not context.nil?
-			@widget_instances[context].push(new_instance_uuid)
-		end
-		# Map this instance to a list of the instance of other widgets that it contains
-		# This list will be populated as this widget instance is rendered.
-		@widget_instances[new_instance_uuid] = []
-
-		# For this widget instance, save information about its widget type and instance name
-		# for later (needed when setting up its instance in javascript).
-		@widget_instance_properties[new_instance_uuid] = {
-				:widget_type => widget_type_sym,
-				:widget_instance_name => widget_instance_name
-			}
+		# Create a new instance of a widget of type widget_type, instance name widget_instance_name,
+		# and register its existence under the current parent widget context (if one exists)
+		new_instance_uuid = create_new_widget_instance(widget_type_sym, widget_instance_name, parent_context)
 
 		# Get the static information about this widget type (e.g., the name of its partial view file)
 		widget_info = WidgetMaster::get_widget_info(widget_type_sym)
@@ -53,7 +37,7 @@ module ApplicationHelper
 
 		# Generate information about this widget that will be used by the widget template.
 		widget_template_info =
-			get_widget_template_info(widget_type_sym, new_instance_uuid, context)
+			get_widget_template_info(widget_type_sym, new_instance_uuid, parent_context)
 
 		# Get the local variables that will be passed to the widget partial by merging
 		# the property :widget_template_info with all data properties of the widget instance.
@@ -84,6 +68,33 @@ module ApplicationHelper
 				:widget_class => "#{WIDGET_NS}-#{widget_uuid}",
 				:parent_widget_context => parent_widget_context
 			}
+		end
+
+		# Create a new instance of a widget of type widget_type, instance name widget_instance_name,
+		# and register its existence under the current parent widget context (if one exists)
+		def create_new_widget_instance (widget_type, widget_instance_name, parent_widget_context)
+			# Generate a uuid for the instance of the widget being rendered
+			new_instance_uuid = SecureRandom.uuid
+
+			# If we're inside a parent widget's context (context is not nil),
+			# then record that this widget instance is contained within the parent
+			# widget instance.
+			if not parent_widget_context.nil?
+				@widget_instances[parent_widget_context].push(new_instance_uuid)
+			end
+
+			# Map this instance to a list of the instance of other widgets that it contains
+			# This list will be populated as this widget instance is rendered.
+			@widget_instances[new_instance_uuid] = []
+
+			# For this widget instance, save information about its widget type and instance name
+			# for later (needed when setting up its instance in javascript).
+			@widget_instance_properties[new_instance_uuid] = {
+					:widget_type => widget_type,
+					:widget_instance_name => widget_instance_name
+				}
+
+			return new_instance_uuid
 		end
 
 		# Given a parent widget instance context and the type of the widget currenly
