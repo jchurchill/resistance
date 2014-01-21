@@ -36,6 +36,7 @@ module ApplicationHelper
 		# Map this instance to a list of the instance of other widgets that it contains
 		# This list will be populated as this widget instance is rendered.
 		@widget_instances[new_instance_uuid] = []
+
 		# For this widget instance, save information about its widget type and instance name
 		# for later (needed when setting up its instance in javascript).
 		@widget_instance_properties[new_instance_uuid] = {
@@ -91,7 +92,7 @@ module ApplicationHelper
 		# to prevent developer mistakes and should not be run in production.
 		def enforce_widget_dependencies (parent_widget_context, this_widget_type)
 			# If not within a parent widget context, no dependencies to enforce.
-			if context.nil?
+			if parent_widget_context.nil?
 				return
 			end
 			# Get the static information about this widget's parent widget type

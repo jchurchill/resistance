@@ -4,7 +4,7 @@ module WidgetMaster
 			:view => 'widgets/test',
 			:js => [],
 			:style => [],
-			:dependencies => []
+			:dependencies => [:testsub]
 		},
 		:testsub => {
 			:view => 'widgets/testsub',
@@ -82,5 +82,8 @@ module WidgetMaster
 			}
 		end
 	
-	verify_all_widget_dependencies
+	# This runs once on App Start when this class is defined.
+	if Rails.env.development?
+		verify_all_widget_dependencies
+	end
 end
