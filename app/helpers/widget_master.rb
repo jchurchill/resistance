@@ -2,13 +2,13 @@ module WidgetMaster
 	WIDGETS = {
 		:test => {
 			:view => 'widgets/test',
-			:js => [],
+			:js => ['test'],
 			:style => [],
 			:dependencies => [:testsub]
 		},
 		:testsub => {
 			:view => 'widgets/testsub',
-			:js => [],
+			:js => ['testsub'],
 			:style => [],
 			:dependencies => []
 		}
@@ -37,12 +37,10 @@ module WidgetMaster
 	end
 
 	private
-		@h = 1
 		def self.ordered_dependencies_internal! (widget_type, depth, order_hash)
 			order_hash[widget_type] = depth if depth > (order_hash[widget_type] || -1)
 			deps = WIDGETS[widget_type][:dependencies] || []
 			deps.each { |d| ordered_dependencies_internal!(d, depth + 1, order_hash) }
-			@h += 1
 			return
 		end
 
@@ -74,7 +72,7 @@ module WidgetMaster
 			expand_dependencies! widget_type, all_deps
 			return all_deps
 		end
-		
+
 		def self.expand_dependencies! (widget_type, expanded_deps)
 			deps = WIDGETS[widget_type][:dependencies] || []
 			deps.each { |d| 

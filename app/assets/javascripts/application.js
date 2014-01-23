@@ -17,4 +17,3 @@
 //= require jquery.ui.mouse
 //= require jquery.ui.position
 //= require turbolinks
-//= require_tree .

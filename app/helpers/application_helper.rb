@@ -1,19 +1,20 @@
 module ApplicationHelper
-	WIDGET_NS = 'jj-widget'
+	WIDGET_NS = 'jj'
+	WIDGET_CLASS_PREFIX = 'jj-widget'
 	WIDGET_LAYOUT = 'layouts/widget'
 
 	def widget (widget_type, widget_instance_name, widget_data={})
 		# TODO JC: figure out way to remove these from this function
 		@widget_instances = @widget_instances || {}
 		@widget_instance_properties = @widget_instance_properties || {}
-		@registered_widgets = @registered_widgets || Set.new
+		@registered_widget_types = @registered_widget_types || Set.new
 
 		# Always use the symbol in case a string was passed in
 		widget_type_sym = widget_type.to_sym
 
 		# Register this widget as being "used" on this page so that we later
 		# know to include its javascript on the page too.
-		@registered_widgets.add(widget_type_sym)
+		@registered_widget_types.add(widget_type_sym)
 
 		# Save the parent widget context for this widget instance
 		parent_context = @parent_widget_context
@@ -26,7 +27,8 @@ module ApplicationHelper
 
 		# Create a new instance of a widget of type widget_type, instance name widget_instance_name,
 		# and register its existence under the current parent widget context (if one exists)
-		new_instance_uuid = create_new_widget_instance(widget_type_sym, widget_instance_name, parent_context)
+		new_instance_uuid = create_new_widget_instance(
+			widget_type_sym, widget_instance_name, parent_context, widget_data)
 
 		# Get the static information about this widget type (e.g., the name of its partial view file)
 		widget_info = WidgetMaster::get_widget_info(widget_type_sym)
@@ -58,6 +60,44 @@ module ApplicationHelper
 		@parent_widget_context = context
 	end
 
+	# Renders script tags for all javascript files used by widgets on the page,
+	# provided that it is called after all widgets have been rendered.
+	def all_required_widgets_js
+		js = all_required_widgets(:js)
+		if not js.empty?
+			javascript_include_tag *js
+		else
+			return
+		end
+	end
+
+	# Renders style links for all stylesheet files used by widgets on the page,
+	# provided that it is called after all widgets have been rendered.
+	def all_required_widgets_style
+		style = all_required_widgets(:style)
+		if not style.empty?
+			stylesheet_link_tag *style
+		else
+			return
+		end
+	end
+
+	def all_widget_instances
+		return @widget_instance_properties
+	end
+
+	def widget_instance_children (widget_instance_id)
+		# TODO: add check for naming collision between widgets and widget data here!
+		children = @widget_instances[widget_instance_id].map { | child_wid |
+			child = @widget_instance_properties[child_wid]
+			{
+				:instance_name => child[:widget_instance_name],
+				:instance_id => child_wid
+			}
+		}
+		return children
+	end
+
 	private
 		# Returns all information passed to the widget partial specifically for the
 		# widget layout template rendering.
@@ -65,14 +105,28 @@ module ApplicationHelper
 			return {
 				:widget_type => widget_type,
 				:widget_uuid => widget_uuid,
-				:widget_class => "#{WIDGET_NS}-#{widget_uuid}",
+				:widget_class => "#{WIDGET_CLASS_PREFIX}-#{widget_uuid}",
+				:widget_full_name => "#{WIDGET_NS}.#{widget_type}",
 				:parent_widget_context => parent_widget_context
 			}
 		end
 
+		# For all widgets required on the page, get some property about each
+		# and return a list containing each value
+		# Useful for getting every widget's js or css files, for example.
+		def all_required_widgets (prop)
+			prop_sym = prop.to_sym
+			WidgetMaster::get_ordered_dependencies(@registered_widget_types)
+				.map { |w_type|
+					WidgetMaster.get_widget_info(w_type)[prop_sym]
+				}
+				.flatten
+				.compact
+		end
+
 		# Create a new instance of a widget of type widget_type, instance name widget_instance_name,
 		# and register its existence under the current parent widget context (if one exists)
-		def create_new_widget_instance (widget_type, widget_instance_name, parent_widget_context)
+		def create_new_widget_instance (widget_type, widget_instance_name, parent_widget_context, widget_data)
 			# Generate a uuid for the instance of the widget being rendered
 			new_instance_uuid = SecureRandom.uuid
 
@@ -91,7 +145,10 @@ module ApplicationHelper
 			# for later (needed when setting up its instance in javascript).
 			@widget_instance_properties[new_instance_uuid] = {
 					:widget_type => widget_type,
-					:widget_instance_name => widget_instance_name
+					:widget_data_name => (WIDGET_NS + widget_type.to_s.capitalize),
+					:widget_instance_name => widget_instance_name,
+					:widget_box_class => "#{WIDGET_CLASS_PREFIX}-#{new_instance_uuid}",
+					:widget_data => widget_data
 				}
 
 			return new_instance_uuid

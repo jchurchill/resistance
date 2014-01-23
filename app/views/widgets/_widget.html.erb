@@ -1,0 +1,19 @@
+<% # Even though we're in an html.erb, this is all javascript that is expected      %>
+<% # to be placed inside a javascript_tag. Note that it must be escaped with raw(). %>
+var JJ = { widgets: {} };
+
+<% # Create all widget instances being used on the page. %>
+<% all_widget_instances.each do | widget_id, w | %>
+JJ.widgets["<%= widget_id %>"] = $(".<%= w[:widget_box_class] %>")["<%= w[:widget_type] %>"](<%= w[:widget_data].to_json.html_safe %>).data("<%= w[:widget_data_name] %>");
+<% end %>
+
+<% # For each widget instance that contained other widget instances, make those contained instances %>
+<% # available to the options on the parent widget by their widget "name". %>
+<% all_widget_instances.each do | widget_id, w | %>
+JJ.widgets["<%= widget_id %>"].option({
+	<% widget_instance_children(widget_id).each_with_index do | child, i | %>
+		<% if i > 0 %>,<% end %>"<%= child[:instance_name] %>" : JJ.widgets["<%= child[:instance_id] %>"]
+		<% # TODO: CLEAN UP THIS TRAILING COMMA!!! %>
+	<% end %>
+});
+<% end %>

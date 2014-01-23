@@ -4,6 +4,7 @@
   <title>Resistance</title>
   <%= stylesheet_link_tag    "application", media: "all", "data-turbolinks-track" => true %>
   <%= javascript_include_tag "application", "data-turbolinks-track" => true %>
+  <%= all_required_widgets_style %>
   <%= csrf_meta_tags %>
 </head>
 <body>
@@ -19,5 +20,9 @@
 
 <%= yield %>
 
+<%= all_required_widgets_js %>
+<%= javascript_tag do %>
+  <%= raw(render :partial => "widgets/widget") %>
+<% end %>
 </body>
 </html>
