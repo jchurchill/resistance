@@ -13,7 +13,6 @@ JJ.widgets["<%= widget_id %>"] = $(".<%= w[:widget_box_class] %>")["<%= w[:widge
 JJ.widgets["<%= widget_id %>"].option({
 	<% widget_instance_children(widget_id).each_with_index do | child, i | %>
 		<% if i > 0 %>,<% end %>"<%= child[:instance_name] %>" : JJ.widgets["<%= child[:instance_id] %>"]
-		<% # TODO: CLEAN UP THIS TRAILING COMMA!!! %>
 	<% end %>
 });
 <% end %>

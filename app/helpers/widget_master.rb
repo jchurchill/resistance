@@ -2,13 +2,13 @@ module WidgetMaster
 	WIDGETS = {
 		:test => {
 			:view => 'widgets/test',
-			:js => ['test'],
+			:js => ['widgets/test'],
 			:style => [],
 			:dependencies => [:testsub]
 		},
 		:testsub => {
 			:view => 'widgets/testsub',
-			:js => ['testsub'],
+			:js => ['widgets/testsub'],
 			:style => [],
 			:dependencies => []
 		}

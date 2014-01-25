@@ -1,5 +1,8 @@
 class ApplicationController < ActionController::Base
-  helper :all # include all helpers, all the time 
+  include WidgetHelper
+  helper :widget
+  before_filter :initialize_widget_framework
+  
   protect_from_forgery # prevent csrf attacks
 
   #filter_parameter_logging :password, :password_confirmation
