@@ -3,7 +3,7 @@ module WidgetMaster
 		:test => {
 			:view => 'widgets/test',
 			:js => ['widgets/test'],
-			:style => [],
+			:style => ['widgets/test'],
 			:dependencies => [:testsub]
 		},
 		:testsub => {

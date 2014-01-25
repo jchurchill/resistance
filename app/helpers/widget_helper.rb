@@ -18,7 +18,7 @@ module WidgetHelper
 
 	def all_required_widgets_js
 		js = @widget_helper_widget_framework
-			.all_required_widgets_get(:js)
+			.dependency_ordered_required_widgets_get(:js)
 		if not js.empty?
 			javascript_include_tag *js
 		else
@@ -28,7 +28,7 @@ module WidgetHelper
 
 	def all_required_widgets_style
 		style = @widget_helper_widget_framework
-			.all_required_widgets_get(:style)
+			.dependency_ordered_required_widgets_get(:style)
 		if not style.empty?
 			stylesheet_link_tag *style
 		else
@@ -36,16 +36,26 @@ module WidgetHelper
 		end
 	end
 
-	def all_widget_instances
+	def dependency_ordered_widget_instances
 		@widget_helper_widget_framework
-			.all_widget_instances
+			.dependency_ordered_widget_instances
 	end
 
-	def widget_instance_children (widget_instance_id)
+	def widget_instance_data_options_object (widget_instance_id, js_widget_instance_lookup)
 		@widget_helper_widget_framework
-			.widget_instance_children(widget_instance_id)
+			.widget_instance_data_options_object(widget_instance_id, js_widget_instance_lookup)
 	end
 
+	def widget_framework_complete
+		@widget_helper_widget_framework
+			.widget_framework_complete
+	end
+
+
+	# Represents an object that holds state about the widgets being used on a page.
+	# One of these is maintained by the ApplicationController and is used in combination
+	# with the applcation.html.erb layout to produce all the html, script includes, and css
+	# includes for every widget on the page.
 	class WidgetFramework
 		WIDGET_NS = 'jj'
 		WIDGET_CLASS_PREFIX = 'jj-widget'
@@ -55,13 +65,17 @@ module WidgetHelper
 			base_setup
 		end
 
+		################################################
+		# METHODS THAT MAY ONLY BE CALLED PRE-COMPLETE #
+		################################################
+
 		def widget (widget_type, widget_instance_name, widget_data)
+			if @completed_creating
+				raise 'WidgetFramework: A widget may not be rendered after widget_framework_complete has been called.'
+			end
+
 			# Always use the symbol in case a string was passed in
 			widget_type_sym = widget_type.to_sym
-
-			# Register this widget as being "used" on this page so that we later
-			# know to include its javascript on the page too.
-			@registered_widget_types.add(widget_type_sym)
 
 			# Save the parent widget context for this widget instance
 			parent_context = @parent_widget_context
@@ -76,6 +90,10 @@ module WidgetHelper
 			# and register its existence under the current parent widget context (if one exists)
 			new_instance_uuid = create_new_widget_instance(
 				widget_type_sym, widget_instance_name, parent_context, widget_data)
+
+			# Register this instance of the widget under the widget type instances lookup.
+			@widget_type_instances[widget_type_sym] ||= []
+			@widget_type_instances[widget_type_sym].push(new_instance_uuid)
 
 			# Get the static information about this widget type (e.g., the name of its partial view file)
 			widget_info = WidgetMaster.get_widget_info(widget_type_sym)
@@ -95,7 +113,7 @@ module WidgetHelper
 					:widget_template_info => widget_template_info
 				}
 				.merge!(widget_data) { |key, oldval, newval| 
-					raise "The property #{key} is reserved by the widget framework and may not be used."
+					raise "WidgetFramework: The property #{key} is reserved by the widget framework and may not be used."
 				}
 
 			# Finally, return the arguments needed to render the widget requested inside the widget layout.
@@ -104,40 +122,87 @@ module WidgetHelper
 
 		# Sets the current widget context to be the context provided.
 		def set_widget_context (context)
+			if @completed_creating
+				raise 'WidgetFramework: The widget context may not be changed after widget_framework_complete has been called.'
+			end
 			@parent_widget_context = context
 		end
+
+		def widget_framework_complete
+			if @completed_creating
+				raise 'WidgetFramework: widget_framework_complete may not be called twice.'
+			end
+			if not @parent_widget_context.nil?
+				raise 'WidgetFramework: The value of the widget context when the widget framework is completed rendering widgets should be nil (a top-level, non-widget page).'
+			end
+			@completed_creating = true
+			@dependency_ordered_widget_types =
+				WidgetMaster.get_ordered_dependencies(@widget_type_instances.keys)
+			@dependency_ordered_widget_instances = 
+				@dependency_ordered_widget_types.map { |w_type| 
+					@widget_type_instances[w_type]
+				}
+				.flatten
+				.map { |w_id|
+					@widget_instance_properties[w_id]
+				}
+			return
+		end
+
+
+		#################################################
+		# METHODS THAT MAY ONLY BE CALLED POST-COMPLETE #
+		#################################################
 
 		# Provides list of js or style files used by widgets on the page,
 		# provided that it is called after all widgets have been rendered.
 		# Arg "prop" should be one of [:js, :style].
-		def all_required_widgets_get (prop)
+		def dependency_ordered_required_widgets_get (prop)
+			if not @completed_creating
+				raise 'WidgetFramework: Aggregate operations on the widget framework are not allowed until widget_framework_complete has been called.'
+			end
 			prop_sym = prop.to_sym
-			WidgetMaster::get_ordered_dependencies(@registered_widget_types)
-				.map { |w_type|
+			@dependency_ordered_widget_types.map { |w_type|
 					WidgetMaster.get_widget_info(w_type)[prop_sym]
 				}
 				.flatten
 				.compact
 		end
 
-		def all_widget_instances
-			return @widget_instance_properties
+		def dependency_ordered_widget_instances
+			if not @completed_creating
+				raise 'WidgetFramework: Aggregate operations on the widget framework are not allowed until widget_framework_complete has been called.'
+			end
+			return @dependency_ordered_widget_instances
 		end
 
-		def widget_instance_children (widget_instance_id)
-			# TODO: add check for naming collision between widgets and widget data here!
-			children = @widget_instances[widget_instance_id].map { | child_wid |
-				child = @widget_instance_properties[child_wid]
-				{
-					:instance_name => child[:widget_instance_name],
-					:instance_id => child_wid
+		def widget_instance_data_options_object (widget_instance_id, js_widget_instance_lookup)
+			widget_data = @widget_instance_properties[widget_instance_id][:widget_data]
+
+			widget_children =
+				@widget_instances[widget_instance_id].inject({}) { | data_obj, child_wid |
+					child = @widget_instance_properties[child_wid]
+					w_kvp = {
+						child[:widget_instance_name].to_s => JsonWidget.new(js_widget_instance_lookup, child_wid)
+					}
+					data_obj.merge!(w_kvp) { |key, oldval, newval| 
+						raise "WidgetFramework: A widget may not contain two subwidgets with the same instance name: #{key}."
+					}
 				}
+
+			all_data = widget_data.merge(widget_children) { |key, oldval, newval| 
+				raise "WidgetFramework: A widget may not contain a subwidget with the same instance name as a widget property: #{key}."
 			}
-			return children
 		end
 
 		private
 			def base_setup
+				# A bool that indicates whether or not any more widgets may be created while rendering.
+				# This exists for performance reasons; once we know that all widgets that ever will be
+				# created have been created, we can do some post processing to make it so that rendering
+				# the javascripts and widget instances in dependency order is a faster operation.
+				@completed_creating = false
+
 				# widget_instances
 				# A mapping from the id of each created widget instance to the ids of its dependent widgets.
 				# Example: {
@@ -151,6 +216,7 @@ module WidgetHelper
 				# Example:
 				# {
 				# 	'a03bf0-23923' => {
+				# 		:widget_uuid => 					'a03bf0-23923',
 				# 		:widget_type => 					:item_selector,
 				# 		:widget_data_name => 			'jjItem_selector',
 				# 		:widget_instance_name => 	'itemSelector1',
@@ -160,11 +226,16 @@ module WidgetHelper
 				# }
 				@widget_instance_properties ||= {}
 
-				# registered_widget_types
-				# A set containing every widget type encountered while rendering widgets.
+				# widget_type_instances
+				# A mapping from each widget type being rendered in the view to the widget instance
+				# ids of that type. Note that the keys of this hash represent all widget types that 
+				# will exist on the page.
 				# Example:
-				# [ :item_selector, :date_selector, :other_widget ]
-				@registered_widget_types ||= Set.new
+				# {
+				# 	:item_selector => ['a03bf0-23923', '191fbe-1a80e'],
+				# 	:other_widget  => ['39bfe932-becd91']
+				# }
+				@widget_type_instances ||= {}
 			end
 
 			# Returns all information passed to the widget partial specifically for the
@@ -199,6 +270,7 @@ module WidgetHelper
 				# For this widget instance, save information about its widget type and instance name
 				# for later (needed when setting up its instance in javascript).
 				@widget_instance_properties[new_instance_uuid] = {
+						:widget_uuid => new_instance_uuid,
 						:widget_type => widget_type,
 						:widget_data_name => (WIDGET_NS + widget_type.to_s.capitalize),
 						:widget_instance_name => widget_instance_name,
@@ -224,6 +296,17 @@ module WidgetHelper
 				# Ensure that the parent widget listed this widget as a dependency. If it did not, raise.
 				if not parent_widget_info[:dependencies].include? this_widget_type
 					raise "Widget '#{parent_widget_type}' contained an instance of widget '#{this_widget_type}', but was not listed as a dependency of '#{parent_widget_type}' in the WidgetMaster."
+				end
+			end
+
+			# Used to override the way that a json widget is encoded so that it doesn't
+			# get wrapped in quotes as a string, but rather is treated as a variable in js code.
+			class JsonWidget < String
+				def initialize(js_widget_instance_lookup, widget_id)
+					@json_val = "#{js_widget_instance_lookup}['#{widget_id}']"
+				end
+				def encode_json(encoder)
+					return @json_val
 				end
 			end
 	end

@@ -1,7 +1,10 @@
 class ApplicationController < ActionController::Base
-  include WidgetHelper
-  helper :widget
+  # Widget framework inclusions
+  include WidgetHelper # Needed for the below before_filter
+  # initializes template renderer to keep track of widget instances
   before_filter :initialize_widget_framework
+  # Provides "widget" function within any view
+  helper :widget
   
   protect_from_forgery # prevent csrf attacks
 
