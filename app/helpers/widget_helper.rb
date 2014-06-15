@@ -1,8 +1,12 @@
 module WidgetHelper
 
-	def initialize_widget_framework ()
+	def widget_framework_initialize
 		@widget_helper_widget_framework = WidgetFramework.new
-		p '##### Widget framework initialized.'
+		p '##### Widget framework initialized #####'
+	end
+
+	def widget_framework
+		@widget_helper_widget_framework
 	end
 
 	def widget (widget_type, widget_instance_name, widget_data={})
@@ -11,54 +15,13 @@ module WidgetHelper
 		render render_args
 	end
 
-	def set_widget_context (context)
-		@widget_helper_widget_framework
-			.set_widget_context(context)
-	end
-
-	def all_required_widgets_js
-		js = @widget_helper_widget_framework
-			.dependency_ordered_required_widgets_get(:js)
-		if not js.empty?
-			javascript_include_tag *js
-		else
-			return
-		end
-	end
-
-	def all_required_widgets_style
-		style = @widget_helper_widget_framework
-			.dependency_ordered_required_widgets_get(:style)
-		if not style.empty?
-			stylesheet_link_tag *style
-		else
-			return
-		end
-	end
-
-	def dependency_ordered_widget_instances
-		@widget_helper_widget_framework
-			.dependency_ordered_widget_instances
-	end
-
-	def widget_instance_data_options_object (widget_instance_id, js_widget_instance_lookup)
-		@widget_helper_widget_framework
-			.widget_instance_data_options_object(widget_instance_id, js_widget_instance_lookup)
-	end
-
-	def widget_framework_complete
-		@widget_helper_widget_framework
-			.widget_framework_complete
-	end
-
-
 	# Represents an object that holds state about the widgets being used on a page.
 	# One of these is maintained by the ApplicationController and is used in combination
 	# with the applcation.html.erb layout to produce all the html, script includes, and css
 	# includes for every widget on the page.
 	class WidgetFramework
 		WIDGET_NS = 'jj'
-		WIDGET_CLASS_PREFIX = 'jj-widget'
+		WIDGET_CLASS = 'jj-widget'
 		WIDGET_LAYOUT = 'layouts/widget'
 
 		def initialize
@@ -128,7 +91,7 @@ module WidgetHelper
 			@parent_widget_context = context
 		end
 
-		def widget_framework_complete
+		def finish_widgets
 			if @completed_creating
 				raise 'WidgetFramework: widget_framework_complete may not be called twice.'
 			end
@@ -154,19 +117,22 @@ module WidgetHelper
 		# METHODS THAT MAY ONLY BE CALLED POST-COMPLETE #
 		#################################################
 
-		# Provides list of js or style files used by widgets on the page,
-		# provided that it is called after all widgets have been rendered.
-		# Arg "prop" should be one of [:js, :style].
-		def dependency_ordered_required_widgets_get (prop)
-			if not @completed_creating
-				raise 'WidgetFramework: Aggregate operations on the widget framework are not allowed until widget_framework_complete has been called.'
+		def all_required_widgets_js (view_renderer)
+			js = dependency_ordered_required_widgets_get(:js)
+			if not js.empty?
+				view_renderer.javascript_include_tag *js
+			else
+				return
 			end
-			prop_sym = prop.to_sym
-			@dependency_ordered_widget_types.map { |w_type|
-					WidgetMaster.get_widget_info(w_type)[prop_sym]
-				}
-				.flatten
-				.compact
+		end
+
+		def all_required_widgets_style (view_renderer)
+			style = dependency_ordered_required_widgets_get(:style)
+			if not style.empty?
+				view_renderer.stylesheet_link_tag *style
+			else
+				return
+			end
 		end
 
 		def dependency_ordered_widget_instances
@@ -244,7 +210,7 @@ module WidgetHelper
 				return {
 					:widget_type => widget_type,
 					:widget_uuid => widget_uuid,
-					:widget_class => "#{WIDGET_CLASS_PREFIX}-#{widget_uuid}",
+					:widget_class => "#{WIDGET_CLASS}-#{widget_uuid}",
 					:widget_full_name => "#{WIDGET_NS}.#{widget_type}",
 					:parent_widget_context => parent_widget_context
 				}
@@ -272,9 +238,7 @@ module WidgetHelper
 				@widget_instance_properties[new_instance_uuid] = {
 						:widget_uuid => new_instance_uuid,
 						:widget_type => widget_type,
-						:widget_data_name => (WIDGET_NS + widget_type.to_s.capitalize),
 						:widget_instance_name => widget_instance_name,
-						:widget_box_class => "#{WIDGET_CLASS_PREFIX}-#{new_instance_uuid}",
 						:widget_data => widget_data
 					}
 
@@ -299,11 +263,26 @@ module WidgetHelper
 				end
 			end
 
+			# Provides list of js or style files used by widgets on the page,
+			# provided that it is called after all widgets have been rendered.
+			# Arg "prop" should be one of [:js, :style].
+			def dependency_ordered_required_widgets_get (prop)
+				if not @completed_creating
+					raise 'WidgetFramework: Aggregate operations on the widget framework are not allowed until widget_framework_complete has been called.'
+				end
+				prop_sym = prop.to_sym
+				@dependency_ordered_widget_types.map { |w_type|
+						WidgetMaster.get_widget_info(w_type)[prop_sym]
+					}
+					.flatten
+					.compact
+			end
+
 			# Used to override the way that a json widget is encoded so that it doesn't
 			# get wrapped in quotes as a string, but rather is treated as a variable in js code.
 			class JsonWidget < String
 				def initialize(js_widget_instance_lookup, widget_id)
-					@json_val = "#{js_widget_instance_lookup}['#{widget_id}']"
+					@json_val = "['#{widget_id}']"
 				end
 				def encode_json(encoder)
 					return @json_val

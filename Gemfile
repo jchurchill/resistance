@@ -16,7 +16,7 @@ gem 'uglifier', '>= 1.3.0'
 gem 'coffee-rails', '~> 4.0.0'
 
 # See https://github.com/sstephenson/execjs#readme for more supported runtimes
-# gem 'therubyracer', platforms: :ruby
+gem 'therubyracer', platforms: :ruby
 
 # Use jquery as the JavaScript library
 gem 'jquery-rails'
@@ -33,9 +33,17 @@ gem 'authlogic'
 # JC 1/19/2014 - Include jquery ui rails for the widget framework
 gem 'jquery-ui-rails', '~> 4.1.1'
 
+# JC 6/15/2014 - Include websocket gem for setting up websockets
+gem 'em-websocket'
+
 group :doc do
   # bundle exec rake doc:rails generates the API under doc/api.
   gem 'sdoc', require: false
+end
+
+# JC 1/26/2014 - Include less css
+group :assets do
+  gem 'less'
 end
 
 # Use ActiveModel has_secure_password

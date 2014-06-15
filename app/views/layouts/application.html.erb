@@ -18,10 +18,10 @@
   </div>
 
 <%= yield %>
-<% widget_framework_complete %>
+<% widget_framework.finish_widgets %>
 
-<%= all_required_widgets_style %>
-<%= all_required_widgets_js %>
+<%= widget_framework.all_required_widgets_style self %>
+<%= widget_framework.all_required_widgets_js self %>
 <%= javascript_tag do %>
   <%= raw(render :partial => "widgets/widget") %>
 <% end %>

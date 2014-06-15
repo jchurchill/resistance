@@ -1,9 +1,7 @@
 class ApplicationController < ActionController::Base
   # Widget framework inclusions
-  include WidgetHelper # Needed for the below before_filter
-  # initializes template renderer to keep track of widget instances
-  before_filter :initialize_widget_framework
-  # Provides "widget" function within any view
+  include WidgetHelper
+  before_filter :widget_framework_initialize
   helper :widget
   
   protect_from_forgery # prevent csrf attacks
@@ -23,7 +21,6 @@ class ApplicationController < ActionController::Base
     end
 
     def require_user
-      logger.debug "ApplicationController::require_user"
       unless current_user
         store_location
         flash[:notice] = "You must be logged in to access this page"
@@ -33,7 +30,6 @@ class ApplicationController < ActionController::Base
     end
 
     def require_no_user
-      logger.debug "ApplicationController::require_no_user"
       if current_user
         store_location
         flash[:notice] = "You must be logged out to access this page"

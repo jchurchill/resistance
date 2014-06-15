@@ -1,0 +1,32 @@
+@import "../application.css.less";
+@topBarColor: #eeeeee;
+
+.panel .window {
+	width:300px;
+	height:300px;
+	border:1px solid black;
+	position:absolute;
+}
+
+.panel .close {
+	display: inline-block;
+	background-image: url('/assets/red_x.png');
+	border-radius: 2px;
+	width: 15px;
+	height: 15px;
+	float: right;
+	border: 1px solid @topBarColor;
+}
+
+.panel .close:hover {
+	cursor: pointer;
+	opacity: 0.5;
+	border: 1px solid #888888;
+}
+
+.panel .topBar {
+	height:16px;
+	padding:5px;
+	background-color: @topBarColor;
+	.no-highlight;
+}

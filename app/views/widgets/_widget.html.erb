@@ -2,15 +2,43 @@
 
 <% # Even though we're in an html.erb, this is all javascript that is expected      %>
 <% # to be placed inside a javascript_tag. Note that it must be escaped with raw(). %>
-var JJ = { widgets: {} };
+window.JJ = {
+	Widget: {
+		namespace: <%= raw WidgetHelper::WidgetFramework::WIDGET_NS.to_json %>,
+		class: <%= raw WidgetHelper::WidgetFramework::WIDGET_CLASS.to_json %>,
+		instances: {},
+		widgetTypeName: function(widgetType) {
+			// 
+		},
+		widgetDataName: function(widgetType) {
+
+		},
+		addWidgetType: function(widgetTypeName) {
+
+		},
+		createWidget: function(id, widgetTypeName, properties) {
+			var contentBoxClass = this.class + "-" + id,
+				widgetType = JJ[widgetTypeName],
+				widgetDataName = this.widgetDataName(widgetType);
+			if (!widgetType) { throw "Widget type " + widgetTypeName + " not loaded."; }
+			// Keep track of the widget instance by its id, attach it to its div.
+			this.instances[id] =
+				$("." + contentBoxClass)[widgetTypeName](properties).data(widgetDataName);
+		}
+	}
+};
 
 <% # Create all widget instances being used on the page. %>
-<% dependency_ordered_widget_instances.each do | w | %>
-<% # Store the widget instance in JJ.widgets hash by its id, attach it to its div. %>
-JJ.widgets["<%= w[:widget_uuid] %>"] = $(".<%= w[:widget_box_class] %>")["<%= w[:widget_type] %>"](
+<% widget_framework.dependency_ordered_widget_instances.each do | w | %>
+<% #  %>
+JJ.Widget.createWidget({
+	id: <%= w[:widget_uuid].to_json %>,
+	widgetTypeName: <%= w[:widget_type].to_s.camelize.to_json %>,
+	properties: <%= raw widget_framework.widget_instance_data_options_object(w[:widget_uuid], 'JJ.Widget.instances').to_json %>
+});
+JJ.Widget.instances["<%= w[:widget_uuid] %>"] = $(".<%= w[:widget_box_class] %>")["<%= w[:widget_type].to_s.camelize %>"](
 	<% # Each widget instance gets populated with a set of options: %>
-	<% # 1. the widget data passed into the widget %>
-	<%= raw widget_instance_data_options_object(w[:widget_uuid], 'JJ.widgets').to_json %>
-	<% # 2. all child widget instances for this widget (which has already been created due to dependency ordering) %>
+	<% # 1. the widget data passed into the widget, and all child widget instances %>
+	 
 ).data("<%= w[:widget_data_name] %>");
 <% end %>

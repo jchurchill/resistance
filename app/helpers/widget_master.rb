@@ -11,6 +11,18 @@ module WidgetMaster
 			:js => ['widgets/testsub'],
 			:style => [],
 			:dependencies => []
+		},
+		:item_selector => {
+			:view => 'widgets/item_selector',
+			:js => ['widgets/item_selector'],
+			:style => [],
+			:dependencies => [:panel]
+		},
+		:panel => {
+			:view => 'widgets/panel',
+			:js => ['widgets/panel'],
+			:style => ['widgets/panel'],
+			:dependencies => []
 		}
 	}
 

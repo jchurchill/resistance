@@ -1,0 +1,10 @@
+<%
+empty_text ||= "Select an item"
+select_name ||= :item
+%>
+<span style="display:inline-block;border:1px solid black;border-radius:4px;padding:1px 4px;cursor:pointer;">
+	<%= empty_text %>
+</span>
+<%= widget :panel, 'itemSelectorPanel', {
+	title_text: empty_text
+} %>
