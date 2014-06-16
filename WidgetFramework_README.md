@@ -4,11 +4,11 @@ The "JJ" widget framework V 1.0
 ********** Usage ************
 
 In a rails app, create the following directories:
-
-Widget Views: 			app/views/widgets
+```
+Widget Views: 		app/views/widgets
 Widget Javascripts: 	app/assets/javascripts/widgets
 Widget Stylesheets: 	app/assets/stylesheets/widgets
-
+```
 A file in each of these constitutes one "widget".
 For example, you might have a widget called "Panel". The following three files will exist:
 
