@@ -95,9 +95,9 @@ It has "public" methods, "private" methods (those preceded by an underscore, by 
 The widget framework will automatically generate in javascript an instance of each widget used on the page being displayed.
 When doing so, it will automatically initialize each instance to have
 
-	a) The data the widget was created with in the call to <%= widget ... %>
-	
-	b) References to subwidgets that were created in the context of a parent widget
+a) The data the widget was created with in the call to <%= widget ... %>
+
+b) References to subwidgets that were created in the context of a parent widget
 
 For (a), this data can be accessed within the context of a widget via this.get("my_property").
 
