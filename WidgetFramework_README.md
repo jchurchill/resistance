@@ -12,10 +12,11 @@ Widget Stylesheets: 	app/assets/stylesheets/widgets
 A file in each of these constitutes one "widget".
 For example, you might have a widget called "Panel". The following three files will exist:
 
-	app/views/widgets/_panel.html.erb
-	app/assets/javascripts/widgets/panel.js
-	app/assets/stylesheets/widgets/panel.css[.less|.scss|...]
-
+```
+app/views/widgets/_panel.html.erb
+app/assets/javascripts/widgets/panel.js
+app/assets/stylesheets/widgets/panel.css[.less|.scss|...]
+```
 
 
 
@@ -25,9 +26,11 @@ You may not know how to set up a widget yet, but let's talk first about what it 
 Suppose I defined a widget called "panel" that I wanted to use in one of my application's pages.
 Here's what the page's html.erb might look like:
 
+```
 <%= widget :panel, 'itemSelectorPanel', {
 	title_text: "My Panel"
 } %>
+```
 
 The function "widget" renders a widget on your page.
 
@@ -42,11 +45,12 @@ both the html.erb of the widget being rendered, as well as the instance of the w
 This provides you with a way to parameterize your widgets.
 In this Panel example, we might have the following snippet in our _panel.html.erb:
 
-	<div class="topBar">
-		<%= title_text %>
-		<span class='close'>&nbsp;</span>
-	</div>
-
+```
+<div class="topBar">
+	<%= title_text %>
+	<span class='close'>&nbsp;</span>
+</div>
+```
 
 
 
@@ -60,16 +64,17 @@ It is interesting to note that widgets may contain other widgets.
 
 Here's an example "test" widget that renders two "testsub" widgets as part of its html body.
 
-	<div style="border:1px solid black;padding:2px">
-		<div>TEST WIDGET</div>
-		<div>
-			<div>Subwidget 1:</div>
-			<%= widget 'testsub', 'testsub1', { testsub_string: test_string } %>
-			<div>Subwidget 2:</div>
-			<%= widget 'testsub', 'testsub2', { testsub_string: test_string } %>
-		</div>
+```
+<div style="border:1px solid black;padding:2px">
+	<div>TEST WIDGET</div>
+	<div>
+		<div>Subwidget 1:</div>
+		<%= widget 'testsub', 'testsub1', { testsub_string: test_string } %>
+		<div>Subwidget 2:</div>
+		<%= widget 'testsub', 'testsub2', { testsub_string: test_string } %>
 	</div>
-
+</div>
+```
 
 
 
@@ -94,6 +99,7 @@ For (b), the reference to the subwidget can be accessed via this.subwidget("my_s
 
 Widget javascripts are files with the following structure:
 
+```
 $.widget(
 'jj.panel',
 $.extend(JJ.WidgetBase, (function() {
@@ -105,6 +111,7 @@ $.extend(JJ.WidgetBase, (function() {
 		// other functions for the widget here
 	};
 })()));
+```
 
 In general, 'jj.panel' would be replaced with 'jj.#{widget_name}'.
 Note that erb may NOT be used in this file -- and it should not be necessary, since widget parameters are automatically populated in each widget instance.
@@ -129,12 +136,14 @@ The last thing is to look at app/helpers/widget_master.rb.
 The WIDGETS hash at the top of the file must list your widget and some basic properties about it.
 From looking at one key-value pair in the hash, it is probably pretty straightforward how to fill it out for any arbitrary widget:
 
-	:test => {
-		:view => 'widgets/test',
-		:js => ['widgets/test'],
-		:style => ['widgets/test'],
-		:dependencies => [:testsub]
-	},
+```
+:test => {
+	:view => 'widgets/test',
+	:js => ['widgets/test'],
+	:style => ['widgets/test'],
+	:dependencies => [:testsub]
+},
+```
 
 Symbols :view, :js, and :style are simply pointers to where within each of the views, javascripts, and stylesheets folders each piece of the widget can be found.
 Note that a widget can have several javascript and / or css files, though it would be unconventional.
@@ -159,12 +168,7 @@ app/javascripts/widgets/jjwidget.js
 	This contains a small amount of core JJWidget framework code that needs to run client-side before widgets can be created.
 
 app/controllers/application_controller.rb
-	The following lines were added to this file to allow much of the widget framework to work.
-
-	# Widget framework inclusions
-	include WidgetHelper
-	before_filter :widget_framework_initialize
-	helper :widget
+	A few lines were added to the top of this file to allow much of the widget framework to function.
 
 app/helpers/widget_helper.rb
 	The majority of widget framework methods and core code live here.
