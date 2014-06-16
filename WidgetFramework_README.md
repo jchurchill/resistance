@@ -167,23 +167,36 @@ To be clear, if Widget A uses a Widget B, and Widget B uses a Widget C, A need n
 There are a few files that are essential to the widget framework:
 
 app/javascripts/application.js
+
 	In this, we include other js files necessary for the core widget framework.
 	Notably, app/javascripts/widgets/jjwidget.js, and jqueryui.js (several files)
 
+
 app/javascripts/widgets/jjwidget.js
+
 	This contains a small amount of core JJWidget framework code that needs to run client-side before widgets can be created.
 
+
 app/controllers/application_controller.rb
+
 	A few lines were added to the top of this file to allow much of the widget framework to function.
 
+
 app/helpers/widget_helper.rb
+
 	The majority of widget framework methods and core code live here.
 
+
 app/views/layouts/_widget.html.erb
+
 	A layout used by all widgets which wraps each in a uniform container so that they can be referenced client-side.
 
+
 app/views/widgets/_widget.html.erb
+
 	A file that is included once, at the end of every page, that includes a script tag to set up all widget instances that are used by that page.
 
+
 app/views/layouts/application.html.erb
+
 	Several lines of code were added to this file to allow for inclusion of widget javascripts and stylesheets for any widgets used on the page.
