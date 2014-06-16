@@ -17,3 +17,5 @@
 //= require jquery.ui.mouse
 //= require jquery.ui.position
 //= require turbolinks
+// JJ Widget Framework
+//= require widgets/jjwidget

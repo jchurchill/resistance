@@ -2,43 +2,18 @@
 
 <% # Even though we're in an html.erb, this is all javascript that is expected      %>
 <% # to be placed inside a javascript_tag. Note that it must be escaped with raw(). %>
-window.JJ = {
-	Widget: {
-		namespace: <%= raw WidgetHelper::WidgetFramework::WIDGET_NS.to_json %>,
-		class: <%= raw WidgetHelper::WidgetFramework::WIDGET_CLASS.to_json %>,
-		instances: {},
-		widgetTypeName: function(widgetType) {
-			// 
-		},
-		widgetDataName: function(widgetType) {
 
-		},
-		addWidgetType: function(widgetTypeName) {
-
-		},
-		createWidget: function(id, widgetTypeName, properties) {
-			var contentBoxClass = this.class + "-" + id,
-				widgetType = JJ[widgetTypeName],
-				widgetDataName = this.widgetDataName(widgetType);
-			if (!widgetType) { throw "Widget type " + widgetTypeName + " not loaded."; }
-			// Keep track of the widget instance by its id, attach it to its div.
-			this.instances[id] =
-				$("." + contentBoxClass)[widgetTypeName](properties).data(widgetDataName);
-		}
-	}
-};
+/* Namespace of widget */
+window.JJ.namespace = <%= raw WidgetHelper::WidgetFramework::WIDGET_NS.to_json %>;
+window.JJ.widgetClass = <%= raw WidgetHelper::WidgetFramework::WIDGET_CLASS.to_json %>;
 
 <% # Create all widget instances being used on the page. %>
 <% widget_framework.dependency_ordered_widget_instances.each do | w | %>
-<% #  %>
-JJ.Widget.createWidget({
-	id: <%= w[:widget_uuid].to_json %>,
-	widgetTypeName: <%= w[:widget_type].to_s.camelize.to_json %>,
-	properties: <%= raw widget_framework.widget_instance_data_options_object(w[:widget_uuid], 'JJ.Widget.instances').to_json %>
-});
-JJ.Widget.instances["<%= w[:widget_uuid] %>"] = $(".<%= w[:widget_box_class] %>")["<%= w[:widget_type].to_s.camelize %>"](
-	<% # Each widget instance gets populated with a set of options: %>
-	<% # 1. the widget data passed into the widget, and all child widget instances %>
-	 
-).data("<%= w[:widget_data_name] %>");
+<% # See widgets/jjwidget.js for implementation of createWidget %>
+JJ.Widget.createWidget(
+	/* id: */	 		<%= raw w[:widget_uuid].to_json %>,
+	/* boxclass: */		<%= raw w[:widget_class].to_json %>,
+	/* type: */ 		<%= raw w[:widget_type].to_s.to_json %>,
+	/* properties: */ 	<%= raw widget_framework.widget_instance_data_options_object(w[:widget_uuid]).to_json %>
+);
 <% end %>

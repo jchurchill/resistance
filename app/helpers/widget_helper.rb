@@ -142,23 +142,21 @@ module WidgetHelper
 			return @dependency_ordered_widget_instances
 		end
 
-		def widget_instance_data_options_object (widget_instance_id, js_widget_instance_lookup)
+		def widget_instance_data_options_object (widget_instance_id)
 			widget_data = @widget_instance_properties[widget_instance_id][:widget_data]
 
 			widget_children =
 				@widget_instances[widget_instance_id].inject({}) { | data_obj, child_wid |
 					child = @widget_instance_properties[child_wid]
 					w_kvp = {
-						child[:widget_instance_name].to_s => JsonWidget.new(js_widget_instance_lookup, child_wid)
+						child[:widget_instance_name].to_s => child_wid.to_s
 					}
 					data_obj.merge!(w_kvp) { |key, oldval, newval| 
 						raise "WidgetFramework: A widget may not contain two subwidgets with the same instance name: #{key}."
 					}
 				}
 
-			all_data = widget_data.merge(widget_children) { |key, oldval, newval| 
-				raise "WidgetFramework: A widget may not contain a subwidget with the same instance name as a widget property: #{key}."
-			}
+			return { 'data' => widget_data, 'subwidgets' => widget_children }
 		end
 
 		private
@@ -186,7 +184,6 @@ module WidgetHelper
 				# 		:widget_type => 					:item_selector,
 				# 		:widget_data_name => 			'jjItem_selector',
 				# 		:widget_instance_name => 	'itemSelector1',
-				# 		:widget_box_class => 			'jj-widget-a03bf0-23923',
 				# 		:widget_data => 					{ page_size: 100 }
 				# 	}
 				# }
@@ -210,8 +207,7 @@ module WidgetHelper
 				return {
 					:widget_type => widget_type,
 					:widget_uuid => widget_uuid,
-					:widget_class => "#{WIDGET_CLASS}-#{widget_uuid}",
-					:widget_full_name => "#{WIDGET_NS}.#{widget_type}",
+					:widget_class => widget_class(widget_uuid),
 					:parent_widget_context => parent_widget_context
 				}
 			end
@@ -238,6 +234,7 @@ module WidgetHelper
 				@widget_instance_properties[new_instance_uuid] = {
 						:widget_uuid => new_instance_uuid,
 						:widget_type => widget_type,
+						:widget_class => widget_class(new_instance_uuid),
 						:widget_instance_name => widget_instance_name,
 						:widget_data => widget_data
 					}
@@ -278,15 +275,8 @@ module WidgetHelper
 					.compact
 			end
 
-			# Used to override the way that a json widget is encoded so that it doesn't
-			# get wrapped in quotes as a string, but rather is treated as a variable in js code.
-			class JsonWidget < String
-				def initialize(js_widget_instance_lookup, widget_id)
-					@json_val = "['#{widget_id}']"
-				end
-				def encode_json(encoder)
-					return @json_val
-				end
+			def widget_class (widget_uuid)
+				"#{WIDGET_CLASS}-#{widget_uuid}"
 			end
 	end
 end

@@ -1,7 +1,6 @@
 $.widget(
 'jj.test',
-// jQuery.Widget, // this is default
-(function() {
+$.extend(JJ.WidgetBase, (function() {
 	// Some constants
 	var SOME_CONST = 100,
 		other_stuff = {},
@@ -12,7 +11,8 @@ $.widget(
 	return {
 		_create: function() {
 			console.log("test widget created!");
-			this.options[SUBWIDGET_1].doAlert();
+			this.subwidget(SUBWIDGET_1).doAlert();
+			this.subwidget(SUBWIDGET_2).doAlert();
 		}
 	};
-})());
+})()));

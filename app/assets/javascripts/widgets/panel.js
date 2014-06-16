@@ -1,7 +1,6 @@
 $.widget(
 'jj.panel',
-// jQuery.Widget, // this is default
-(function() {
+$.extend(JJ.WidgetBase, (function() {
 	var DUMMY = null;
 
 	return {
@@ -15,4 +14,4 @@ $.widget(
 			this.element.find(".window").toggleClass("hidden", !doShow);
 		}
 	};
-})());
+})()));

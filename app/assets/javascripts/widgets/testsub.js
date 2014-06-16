@@ -1,7 +1,6 @@
 $.widget(
 'jj.testsub',
-// jQuery.Widget, // this is default
-(function() {
+$.extend(JJ.WidgetBase, (function() {
 	// Some constants
 	var SOME_CONST = 100,
 		other_stuff = {},
@@ -17,4 +16,4 @@ $.widget(
 			alert('My Substring is ' + this.options[MY_STRING]);
 		}
 	};
-})());
+})()));

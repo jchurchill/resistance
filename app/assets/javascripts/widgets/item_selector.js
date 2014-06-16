@@ -1,20 +1,25 @@
 $.widget(
 'jj.item_selector',
-// jQuery.Widget, // this is default
-(function() {
+$.extend(JJ.WidgetBase, (function() {
 	var PANEL = 'itemSelectorPanel';
 
 	return {
 		_create: function() {
 			// Take the panel outside our content box and put it on
 			// the body so it can be dragged anywhere
-			this.options[PANEL].element.appendTo('body');
+			this.subwidget(PANEL).element.appendTo('body');
 			// On click, show the panel
-			this.element.click(function() {
+			this.element.find('.selector-button').click(function() {
 				// Unshow all other item selectors on the page
-				$('.jj-widget .item_selector').
-				this.options[PANEL].show();
+				$('.jj-widget.item_selector').each(function(i, el) {
+					$(el).data("jj-item_selector").show(false);
+				});
+				this.subwidget(PANEL).show();
 			}.bind(this));
+		},
+
+		show: function(doShow) {
+			this.subwidget(PANEL).show(doShow);
 		}
 	};
-})());
+})()));
