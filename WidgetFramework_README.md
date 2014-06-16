@@ -82,19 +82,25 @@ Here's an example "test" widget that renders two "testsub" widgets as part of it
 ********** Widget javascripts ************
 
 The widget javascript achieves three main things for a widget:
-	1. Provides a namespace for arbitrary functions related to the widget
-	2. Allows you to "initialize" a widget instance by setting up any events related to interacting with the widget
-	3. Defines the widget's public API that may be used by other referencing widgets.
+
+1. Provides a namespace for arbitrary functions related to the widget
+
+2. Allows you to "initialize" a widget instance by setting up any events related to interacting with the widget
+
+3. Defines the widget's public API that may be used by other referencing widgets.
 
 A widget javascript should be thought of like a class definition in an object-oriented programming language.
 It has "public" methods, "private" methods (those preceded by an underscore, by convention), and fields / properties.
 
 The widget framework will automatically generate in javascript an instance of each widget used on the page being displayed.
-When doing so, it will automatically initialize each instance to have 
+When doing so, it will automatically initialize each instance to have
+
 	a) The data the widget was created with in the call to <%= widget ... %>
+	
 	b) References to subwidgets that were created in the context of a parent widget
 
 For (a), this data can be accessed within the context of a widget via this.get("my_property").
+
 For (b), the reference to the subwidget can be accessed via this.subwidget("my_subwidget_name").
 
 Widget javascripts are files with the following structure:
