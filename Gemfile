@@ -31,7 +31,7 @@ gem 'jbuilder', '~> 1.2'
 gem 'authlogic'
 
 # JC 1/19/2014 - Include jquery ui rails for the widget framework
-gem 'jquery-ui-rails', '~> 4.1.1'
+gem 'jquery-ui-rails'
 
 # JC 6/15/2014 - Include websocket gem for setting up websockets
 gem 'em-websocket'

@@ -1,25 +1,46 @@
+//= require jquery.ui.autocomplete
+
 $.widget(
 'jj.item_selector',
 $.extend(JJ.WidgetBase, (function() {
-	var PANEL = 'itemSelectorPanel';
+	var
+	// Propeties auto-populated from model
+	GET_ITEMS_URL = 'getItemsUrl',
+
+	// Properties created internally
+	AUTOCOMPLETE = "autocomplete";
 
 	return {
 		_create: function() {
-			// Take the panel outside our content box and put it on
-			// the body so it can be dragged anywhere
-			this.subwidget(PANEL).element.appendTo('body');
-			// On click, show the panel
-			this.element.find('.selector-button').click(function() {
-				// Unshow all other item selectors on the page
-				$('.jj-widget.item_selector').each(function(i, el) {
-					$(el).data("jj-item_selector").show(false);
-				});
-				this.subwidget(PANEL).show();
-			}.bind(this));
+			// Attach a jquery autocomplete to the selector's input el
+			this.element.autocomplete({
+				appendTo: 'input.item-selector',
+				autoFocus: true,
+				delay: 500,
+				minLength: 0,
+				source: this.get(GET_ITEMS_URL)
+			});
+			this.set(AUTOCOMPLETE, this.element.data("ui-autocomplete"));
 		},
 
-		show: function(doShow) {
-			this.subwidget(PANEL).show(doShow);
+		// Autocomplete interface memebers exposed
+
+		enable: function() {
+			this.get(AUTOCOMPLETE).enable();
+		},
+
+		disable: function() {
+			this.get(AUTOCOMPLETE).disable();
+		},
+
+		close: function() {
+			this.get(AUTOCOMPLETE).close();
+		},
+
+		search: function(value) {
+			this.get(AUTOCOMPLETE).search(value);
 		}
+
+		// Private members
 	};
 })()));

@@ -12,10 +12,11 @@
 //
 //= require jquery
 //= require jquery_ujs
+//= require turbolinks
+
+// JJ Widget Framework
+//= require widgets/jjwidget
 //= require jquery.ui.core
 //= require jquery.ui.widget
 //= require jquery.ui.mouse
 //= require jquery.ui.position
-//= require turbolinks
-// JJ Widget Framework
-//= require widgets/jjwidget
