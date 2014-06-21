@@ -12,11 +12,11 @@ window.JJ.Widget = {
 	 */
 	createWidget: function (
 		id,			// Universal identifier for the widget
-		boxclass,	// Unique class of the content box of this widget
+		boxid,		// Unique id of the content box of this widget
 		type,		// Name for the type of this widget
 		properties	// { data: [obj], subwidgets: [obj] }
 	) {
-		var widgetContentBox = $("." + boxclass),
+		var widgetContentBox = $("#" + boxid),
 			widgetData = { data: properties.data, subwidgets: {} },
 			// TODO: don't hardcode reference to "jj" namespace
 			widgetTypeExists = $[this.namespace].hasOwnProperty(type),

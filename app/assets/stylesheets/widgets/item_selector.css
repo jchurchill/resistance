@@ -2,3 +2,6 @@
  *= require jquery.ui.autocomplete
  */
  
+input.item-selector {
+	width: 200px;
+}

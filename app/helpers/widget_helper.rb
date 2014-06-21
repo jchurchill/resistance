@@ -263,7 +263,7 @@ module WidgetHelper
 				return {
 					:widget_type => widget_type,
 					:widget_uuid => widget_uuid,
-					:widget_class => widget_class(widget_uuid),
+					:widget_id => widget_content_box_id(widget_uuid),
 					:parent_widget_context => parent_widget_context
 				}
 			end
@@ -290,7 +290,7 @@ module WidgetHelper
 				@widget_instance_properties[new_instance_uuid] = {
 						:widget_uuid => new_instance_uuid,
 						:widget_type => widget_type,
-						:widget_class => widget_class(new_instance_uuid),
+						:widget_id => widget_content_box_id(new_instance_uuid),
 						:widget_instance_name => widget_instance_name
 					}
 
@@ -335,7 +335,7 @@ module WidgetHelper
 					.compact
 			end
 
-			def widget_class (widget_uuid)
+			def widget_content_box_id (widget_uuid)
 				"#{WIDGET_CLASS}-#{widget_uuid}"
 			end
 	end

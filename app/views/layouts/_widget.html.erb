@@ -10,8 +10,12 @@
 # Finally, a class name with the widget type is added, so that all widgets
 # of the same type can be selected easily if desired.
 %>
-<%= content_tag :div,
-		class: [widget_template_info[:widget_class], 'jj-widget', widget_template_info[:widget_type]] do %>
+<%=
+content_tag :div, {
+	:class => ['jj-widget', widget_template_info[:widget_type]],
+	:id => widget_template_info[:widget_id]
+} do 
+%>
 	<%= yield %>
 <% end %>
 

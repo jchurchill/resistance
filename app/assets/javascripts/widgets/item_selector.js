@@ -13,8 +13,8 @@ $.extend(JJ.WidgetBase, (function() {
 	return {
 		_create: function() {
 			// Attach a jquery autocomplete to the selector's input el
-			this.element.autocomplete({
-				appendTo: 'input.item-selector',
+			var input = this.element.find('input.item-selector');
+			input.autocomplete({
 				autoFocus: true,
 				delay: 500,
 				minLength: 0,

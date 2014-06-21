@@ -10,9 +10,9 @@ window.JJ.widgetClass = <%= raw WidgetHelper::WidgetFramework::WIDGET_CLASS.to_j
 <% # Create all widget instances being used on the page. %>
 <% widget_framework.dependency_ordered_widget_instances.each do | w | %>
 <% # See widgets/jjwidget.js for implementation of createWidget %>
-JJ.Widget.createWidget(
+window.JJ.Widget.createWidget(
 	/* id: */	 		<%= raw w[:widget_uuid].to_json %>,
-	/* boxclass: */		<%= raw w[:widget_class].to_json %>,
+	/* boxid: */		<%= raw w[:widget_id].to_json %>,
 	/* type: */ 		<%= raw w[:widget_type].to_s.to_json %>,
 	/* properties: */ 	<%= raw widget_framework.widget_instance_data_options_object(w[:widget_uuid]).to_json %>
 );
