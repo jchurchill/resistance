@@ -14,6 +14,7 @@ module WidgetMaster
 		},
 		:item_selector => {
 			:view => 'widgets/item_selector',
+			:builder => :ItemSelectorBuilder,
 			:js => ['widgets/item_selector'],
 			:style => [],
 			:dependencies => []

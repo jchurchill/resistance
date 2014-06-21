@@ -9,10 +9,73 @@ module WidgetHelper
 		@widget_helper_widget_framework
 	end
 
-	def widget (widget_type, widget_instance_name, widget_data={})
-		render_args = @widget_helper_widget_framework
-			.widget(widget_type, widget_instance_name, widget_data)
-		render render_args
+	def widget (widget_type, widget_instance_name, view_model=nil)
+		return @widget_helper_widget_framework
+			.widget(widget_type, widget_instance_name, view_model) do |render_args|
+				render render_args
+			end
+	end
+
+	class WidgetBuilderRenderer
+		WIDGET_LAYOUT = 'layouts/widget'
+
+		# Creates a WidgetBuilderRenderer, an object whose responsibility it is to provide
+		# builder methods within a view that calls "widget", and finally to render it as html
+		# view_partial:
+		# 		the name of the partial html for the widget
+		# template_info:
+		# 		information needed by the widget_layout of the widget framework
+		# builder_class_name: 
+		# 		the name of the builder class for the widget (from WidgetMaster)
+		# view_model:
+		# 		the view_model parameter passed into the public widget method, can be nil
+		# &render_callback:
+		# 		a block that will be run once when the widget's view model is finalized, just before it is rendered
+		# 		passed to the block will be two arguments:
+		# 			1. the finalized view model
+		# 			2. the args {:partial, :layout, :locals} that should be passed to an erb partial render
+		def initialize (view_partial, template_info, builder_class_name, view_model, &render_callback)
+			@view_partial = view_partial
+			@template_info = template_info
+			@render_callback = render_callback
+			@builder = get_widget_builder(builder_class_name, view_model)
+		end
+
+		def render
+			view_model = @builder.model
+			widget_locals = {
+				:widget_template_info => @template_info,
+				:model => view_model
+			}
+			render_args = {
+				:partial => @view_partial,
+				:layout => WIDGET_LAYOUT,
+				:locals => widget_locals
+			}
+
+			@render_callback.call(view_model, render_args) if not @render_callback.nil?
+		end
+
+		# all methods on this object otherwise go straight to the builder
+		def method_missing (method_sym, *args, &block)
+			if @builder.respond_to?(method_sym)
+				@builder.send(method_sym, *args, &block)
+				return self
+			else
+				super
+			end
+		end
+
+		def respond_to?(method, include_private = false)
+			super || @builder.respond_to?(method, include_private)
+		end
+
+		private
+			def get_widget_builder (builder_class_name, view_model)
+				builder_class = Object.const_get(builder_class_name)
+				raise "Widget builder #{builder_class} is not a JJWidgetBuilder." if not builder_class < JJWidgetBuilder
+				return builder_class.new(view_model)
+			end
 	end
 
 	# Represents an object that holds state about the widgets being used on a page.
@@ -22,7 +85,6 @@ module WidgetHelper
 	class WidgetFramework
 		WIDGET_NS = 'jj'
 		WIDGET_CLASS = 'jj-widget'
-		WIDGET_LAYOUT = 'layouts/widget'
 
 		def initialize
 			base_setup
@@ -32,7 +94,7 @@ module WidgetHelper
 		# METHODS THAT MAY ONLY BE CALLED PRE-COMPLETE #
 		################################################
 
-		def widget (widget_type, widget_instance_name, widget_data)
+		def widget (widget_type, widget_instance_name, view_model, &render_callback)
 			if @completed_creating
 				raise 'WidgetFramework: A widget may not be rendered after widget_framework_complete has been called.'
 			end
@@ -49,17 +111,17 @@ module WidgetHelper
 				enforce_widget_dependencies(parent_context, widget_type_sym)
 			end
 
+			# Get the static information about this widget type (e.g., the name of its partial view file)
+			widget_info = WidgetMaster.get_widget_info(widget_type_sym)
+
 			# Create a new instance of a widget of type widget_type, instance name widget_instance_name,
 			# and register its existence under the current parent widget context (if one exists)
 			new_instance_uuid = create_new_widget_instance(
-				widget_type_sym, widget_instance_name, parent_context, widget_data)
+				widget_type_sym, widget_instance_name, parent_context)
 
 			# Register this instance of the widget under the widget type instances lookup.
 			@widget_type_instances[widget_type_sym] ||= []
 			@widget_type_instances[widget_type_sym].push(new_instance_uuid)
-
-			# Get the static information about this widget type (e.g., the name of its partial view file)
-			widget_info = WidgetMaster.get_widget_info(widget_type_sym)
 			
 			# Set the new parent context to be this widget, so that this will be the parent context for
 			# subwidgets of this widget when they are rendered.
@@ -69,18 +131,11 @@ module WidgetHelper
 			widget_template_info = 
 				get_widget_template_info(widget_type_sym, new_instance_uuid, parent_context)
 
-			# Get the local variables that will be passed to the widget partial by merging
-			# the property :widget_template_info with all data properties of the widget instance.
-			# If there is a conflict between keys, raise an exception.
-			widget_locals = {
-					:widget_template_info => widget_template_info
-				}
-				.merge!(widget_data) { |key, oldval, newval| 
-					raise "WidgetFramework: The property #{key} is reserved by the widget framework and may not be used."
-				}
-
-			# Finally, return the arguments needed to render the widget requested inside the widget layout.
-			return { partial: widget_info[:view], layout: WIDGET_LAYOUT, locals: widget_locals }
+			# Finally, return the widget as a BuilderRenderer which can be built further (with the specified widget builder), and finally rendered in the view
+			return WidgetBuilderRenderer.new(widget_info[:view], widget_template_info, widget_info[:builder], view_model) do |finalized_view_model, render_args|
+				set_widget_instance_view_model(new_instance_uuid, finalized_view_model)
+				render_callback.call(render_args)
+			end
 		end
 
 		# Sets the current widget context to be the context provided.
@@ -143,7 +198,8 @@ module WidgetHelper
 		end
 
 		def widget_instance_data_options_object (widget_instance_id)
-			widget_data = @widget_instance_properties[widget_instance_id][:widget_data]
+			# The view model implements to_json
+			widget_view_model = @widget_instance_properties[widget_instance_id][:widget_view_model]
 
 			widget_children =
 				@widget_instances[widget_instance_id].inject({}) { | data_obj, child_wid |
@@ -156,7 +212,7 @@ module WidgetHelper
 					}
 				}
 
-			return { 'data' => widget_data, 'subwidgets' => widget_children }
+			return { 'data' => widget_view_model, 'subwidgets' => widget_children }
 		end
 
 		private
@@ -184,7 +240,7 @@ module WidgetHelper
 				# 		:widget_type => 					:item_selector,
 				# 		:widget_data_name => 			'jjItem_selector',
 				# 		:widget_instance_name => 	'itemSelector1',
-				# 		:widget_data => 					{ page_size: 100 }
+				# 		:widget_view_model => 		(An object of type ViewModel, whose instance variables will be widget data)
 				# 	}
 				# }
 				@widget_instance_properties ||= {}
@@ -214,7 +270,7 @@ module WidgetHelper
 
 			# Create a new instance of a widget of type widget_type, instance name widget_instance_name,
 			# and register its existence under the current parent widget context (if one exists)
-			def create_new_widget_instance (widget_type, widget_instance_name, parent_widget_context, widget_data)
+			def create_new_widget_instance (widget_type, widget_instance_name, parent_widget_context)
 				# Generate a uuid for the instance of the widget being rendered
 				new_instance_uuid = SecureRandom.uuid
 
@@ -235,11 +291,15 @@ module WidgetHelper
 						:widget_uuid => new_instance_uuid,
 						:widget_type => widget_type,
 						:widget_class => widget_class(new_instance_uuid),
-						:widget_instance_name => widget_instance_name,
-						:widget_data => widget_data
+						:widget_instance_name => widget_instance_name
 					}
 
 				return new_instance_uuid
+			end
+
+			def set_widget_instance_view_model (widget_uuid, view_model)
+				raise "No widget instance with uuid #{widget_uuid} created." if not @widget_instance_properties.has_key?(widget_uuid)
+				@widget_instance_properties[widget_uuid][:widget_view_model] = (view_model || Hash.new)
 			end
 
 			# Given a parent widget instance context and the type of the widget currenly

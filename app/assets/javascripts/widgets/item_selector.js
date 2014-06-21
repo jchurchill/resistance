@@ -18,7 +18,7 @@ $.extend(JJ.WidgetBase, (function() {
 				autoFocus: true,
 				delay: 500,
 				minLength: 0,
-				source: this.get(GET_ITEMS_URL)
+				source: ["justin", "judy", "rocky", "daniel", "kevin"]
 			});
 			this.set(AUTOCOMPLETE, this.element.data("ui-autocomplete"));
 		},
