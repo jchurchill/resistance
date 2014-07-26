@@ -12,7 +12,6 @@
 //
 //= require jquery
 //= require jquery_ujs
-//= require turbolinks
 
 // JJ Widget Framework
 //= require widgets/jjwidget
