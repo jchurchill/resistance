@@ -22,7 +22,7 @@ gem 'therubyracer', platforms: :ruby
 gem 'jquery-rails'
 
 # Turbolinks makes following links in your web application faster. Read more: https://github.com/rails/turbolinks
-gem 'turbolinks'
+# gem 'turbolinks'
 
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 1.2'
@@ -35,6 +35,11 @@ gem 'jquery-ui-rails'
 
 # JC 6/15/2014 - Include websocket gem for setting up websockets
 gem 'em-websocket'
+
+# JJ 7/26/2014 - Include ember gems
+gem 'ember-rails'
+gem 'ember-source'
+gem 'emblem-rails'
 
 group :doc do
   # bundle exec rake doc:rails generates the API under doc/api.
